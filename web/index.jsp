@@ -12,7 +12,7 @@
 
 
 <form id="msform" action="${pageContext.request.contextPath}/doseckill" enctype="application/x-www-form-urlencoded">
-	<input type="hidden" id="prodid" name="prodid" value="0101">
+	<input type="hidden" id="prodId" name="prodId" value="0348">
 	<input type="button"  id="miaosha_btn" name="seckill_btn" value="秒杀点我"/>
 </form>
 
