@@ -4,6 +4,9 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
+/**
+ * 工具类 Jedis 连接 Redis 的连接池
+ */
 public class JedisPoolUtil {
 	private static volatile JedisPool jedisPool = null;
 
@@ -21,7 +24,7 @@ public class JedisPoolUtil {
 					poolConfig.setBlockWhenExhausted(true);
 					poolConfig.setTestOnBorrow(true);  // ping  PONG
 				 
-					jedisPool = new JedisPool(poolConfig, "192.168.44.168", 6379, 60000 );
+					jedisPool = new JedisPool(poolConfig, "192.168.254.129", 6379, 60000 );
 				}
 			}
 		}
