@@ -20,9 +20,12 @@ public class SecKillServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
 		String userId = new Random().nextInt(50000) + "";
-		String prodId =request.getParameter("prodId");
-		
-		boolean isSuccess=SecKill_redis.doSecKill(userId, prodId);
+		String prodId = request.getParameter("prodId");
+
+		// 此方法未解决库存遗留问题
+		// boolean isSuccess = SecKill_redis.doSecKill(userId, prodId);
+		// 此方法解决库存遗留问题
+		boolean isSuccess = SecKill_redisByScript.doSecKill(userId, prodId);
 		response.getWriter().print(isSuccess);
 	}
 

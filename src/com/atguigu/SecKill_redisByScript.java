@@ -2,21 +2,17 @@ package com.atguigu;
 
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.slf4j.LoggerFactory;
 
-import ch.qos.logback.core.joran.conditional.ElseAction;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
-import redis.clients.jedis.ShardedJedisPool;
-import redis.clients.jedis.Transaction;
 
+/**
+ * 采用 Lua 脚本解决库存遗留问题
+ */
 public class SecKill_redisByScript {
 	
 	private static final  org.slf4j.Logger logger =LoggerFactory.getLogger(SecKill_redisByScript.class) ;
@@ -32,35 +28,35 @@ public class SecKill_redisByScript {
 	//	doSecKill("201","sk:0101");
 	}
 	
-	static String secKillScript ="local userid=KEYS[1];\r\n" + 
-			"local prodid=KEYS[2];\r\n" + 
-			"local qtkey='sk:'..prodid..\":qt\";\r\n" + 
-			"local usersKey='sk:'..prodid..\":usr\";\r\n" + 
-			"local userExists=redis.call(\"sismember\",usersKey,userid);\r\n" + 
+	static String secKillScript ="local userId=KEYS[1];\r\n" +
+			"local prodId=KEYS[2];\r\n" +
+			"local inventoryKey='SecKill:'..prodId..\":inventory\";\r\n" +
+			"local usersKey='SecKill:'..prodId..\":user\";\r\n" +
+			"local userExists=redis.call(\"sismember\",usersKey,userId);\r\n" +
 			"if tonumber(userExists)==1 then \r\n" + 
 			"   return 2;\r\n" + 
 			"end\r\n" + 
-			"local num= redis.call(\"get\" ,qtkey);\r\n" + 
+			"local num= redis.call(\"get\" ,inventoryKey);\r\n" +
 			"if tonumber(num)<=0 then \r\n" + 
 			"   return 0;\r\n" + 
 			"else \r\n" + 
-			"   redis.call(\"decr\",qtkey);\r\n" + 
-			"   redis.call(\"sadd\",usersKey,userid);\r\n" + 
+			"   redis.call(\"decr\",inventoryKey);\r\n" +
+			"   redis.call(\"sadd\",usersKey,userId);\r\n" +
 			"end\r\n" + 
 			"return 1" ;
 			 
 	static String secKillScript2 = 
-			"local userExists=redis.call(\"sismember\",\"{sk}:0101:usr\",userid);\r\n" +
+			"local userExists=redis.call(\"sismember\",\"{SecKill}:0348:user\",userId);\r\n" +
 			" return 1";
 
-	public static boolean doSecKill(String uid,String prodid) throws IOException {
+	public static boolean doSecKill(String uid,String prodId) throws IOException {
 
 		JedisPool jedispool =  JedisPoolUtil.getJedisPoolInstance();
 		Jedis jedis=jedispool.getResource();
 
 		 //String sha1=  .secKillScript;
 		String sha1=  jedis.scriptLoad(secKillScript);
-		Object result= jedis.evalsha(sha1, 2, uid,prodid);
+		Object result= jedis.evalsha(sha1, 2, uid,prodId);
 
 		  String reString=String.valueOf(result);
 		if ("0".equals( reString )  ) {
